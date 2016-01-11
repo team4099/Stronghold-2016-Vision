@@ -11,10 +11,17 @@ cv.NamedWindow('Video')
 print('Press ESC in window to stop')
 
 
+def depth_in_meters_at_pixel(x, y, depth_data):
+    if depth_data:
+        pixel_to_look_at = depth_data[x][y]
+        return lookup_table_depth[int(pixel_to_look_at)]
+    else:
+        return
+
+
 def get_depth():
     depth_data = freenect.sync_get_depth()[0]
-    pixel_to_look_at = depth_data[320][240]
-    print(pixel_to_look_at)
+    print depth_in_meters_at_pixel(320, 240, depth_data)
     print lookup_table_depth[int(pixel_to_look_at)]
     return frame_convert.pretty_depth_cv(depth_data)
 
