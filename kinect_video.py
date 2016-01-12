@@ -36,9 +36,10 @@ def generate_lookup_table():
 
 generate_lookup_table()
 
-while 1:
-    cv.ShowImage('Depth', get_depth())
+# while 1:
+    # cv.ShowImage('Depth', get_depth())
 
-    cv.ShowImage('Video', get_video())
+cv.ShowImage('Video', get_video())
+while 1:
     if cv.WaitKey(10) == 27:
         break
