@@ -26,8 +26,8 @@ def depth_in_meters_at_pixel(x, y, depth_data):
 
 def get_depth():
     depth_data = freenect.sync_get_depth()[0]
-    print depth_in_meters_at_pixel(320, 240, depth_data)
-    print lookup_table_depth[int(pixel_to_look_at)]
+    print(depth_in_meters_at_pixel(320, 240, depth_data))
+    print(lookup_table_depth[int(pixel_to_look_at)])
     return frame_convert.pretty_depth_cv(depth_data)
 
 
@@ -59,8 +59,8 @@ while 1:
     if save.upper() == "EXIT":
         break;
     if "V" in save.upper():
-        cv2.imwrite("video_" + str(int(time.time()/100)) + ".png",
+        cv2.imwrite("img/video_" + str(int(time.time()/100)) + ".png",
                     video_frame)
     if "T" in save.upper():
-        cv2.imwrite("thresholded_" + str(int(time.time()/100)) + ".png",
+        cv2.imwrite("img/thresholded_" + str(int(time.time()/100)) + ".png",
                     thresholded_image)
