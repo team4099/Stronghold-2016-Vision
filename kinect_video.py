@@ -3,7 +3,7 @@ import freenect
 import cv2
 import frame_convert
 import time
-import vision_processing
+# import vision_processing
 import numpy
 
 lookup_table_depth = []
@@ -45,6 +45,7 @@ generate_lookup_table()
 
 while 1:
     # cv.ShowImage('Depth', get_depth())
+    # print(freenect.get_depth_format(freenect.DevPtr._ptr))
     ret, video_frame = get_video()
     # print type(video_frame)
     video_frame = numpy.asarray(video_frame[:,:]) # access as mat
@@ -52,15 +53,21 @@ while 1:
     if video_frame.size <= 10:
         continue
     # print type(video_frame)
-    thresholded_image = vision_processing.threshold_image_for_tape(video_frame)
+    # thresholded_image = vision_processing.threshold_image_for_tape(video_frame)
     cv2.imshow('Video', video_frame)
-    cv2.imshow('Thresholded', thresholded_image)
-    save = raw_input("Save?")
-    if save.upper() == "EXIT":
-        break;
-    if "V" in save.upper():
-        cv2.imwrite("img/video_" + str(int(time.time()/100)) + ".png",
-                    video_frame)
-    if "T" in save.upper():
-        cv2.imwrite("img/thresholded_" + str(int(time.time()/100)) + ".png",
-                    thresholded_image)
+
+    char = cv2.waitKey(10)
+    if char == 115:
+        cv2.imwrite("img/video_" + str(int(time.time()/10)) + ".png", video_frame)
+    elif char == 27:
+        break
+    # cv2.imshow('Thresholded', thresholded_image)
+    # save = raw_input("Save?")
+    # if save.upper() == "EXIT":
+    #     break;
+    # if "V" in save.upper():
+    #     cv2.imwrite("img/video_" + str(int(time.time()/100)) + ".png",
+    #                 video_frame)
+    # if "T" in save.upper():
+    #     cv2.imwrite("img/thresholded_" + str(int(time.time()/100)) + ".png",
+    #                 thresholded_image)

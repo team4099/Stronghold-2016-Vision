@@ -29,12 +29,12 @@ def pretty_depth_cv(depth):
     Returns:
         An opencv image who's datatype is unspecified
     """
-    import cv
+    import cv2
     depth = pretty_depth(depth)
-    image = cv.CreateImageHeader((depth.shape[1], depth.shape[0]),
+    image = cv2.cv.CreateImageHeader((depth.shape[1], depth.shape[0]),
                                  cv.IPL_DEPTH_8U,
                                  1)
-    cv.SetData(image, depth.tostring(),
+    cv2.cv.SetData(image, depth.tostring(),
                depth.dtype.itemsize * depth.shape[1])
     return image
 
@@ -50,11 +50,13 @@ def video_cv(video):
     Returns:
         An opencv image who's datatype is 1 byte, 3 channel BGR
     """
-    import cv
+    # import cv2
+    # print(video)
     video = video[:, :, ::-1]  # RGB -> BGR
-    image = cv.CreateImageHeader((video.shape[1], video.shape[0]),
-                                 cv.IPL_DEPTH_8U,
-                                 3)
-    cv.SetData(image, video.tostring(),
-               video.dtype.itemsize * 3 * video.shape[1])
-    return image
+    # image = cv2.cv.CreateImageHeader((video.shape[1], video.shape[0]),
+    #                              cv.IPL_DEPTH_8U,
+    #                              3)
+    # cv2.cv.SetData(image, video.tostring(),
+    #            video.dtype.itemsize * 3 * video.shape[1])
+    # return image
+    return video
