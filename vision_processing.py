@@ -8,10 +8,12 @@ B_RANGE = (225, 255)
 G_RANGE = (225, 255)
 R_RANGE = (225, 255)
 
+
 WIDTH_OF_GOAL_IN_METERS = 0.51
 FOV_OF_CAMERA = math.radians(57)
 # FOV_OF_CAMERA = math.radians(1)
 # cv.NamedWindow("Vision")
+
 
 def threshold_image_for_tape(image):
     orig_image = numpy.copy(image)
@@ -35,7 +37,9 @@ def threshold_image_for_tape(image):
 
 def get_contours(orig_image):
     new_image = numpy.copy(orig_image)
-    new_image, contours, hierarchy = cv2.findContours(new_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    new_image, contours, hierarchy = cv2.findContours(new_image,
+                                                      cv2.RETR_EXTERNAL,
+                                                      cv2.CHAIN_APPROX_NONE)
     # print(len(contours[0]))
     largest_contour = 0
     if len(contours) > 1:
@@ -63,6 +67,7 @@ def get_corners_from_contours(contours):
     # print(poly_approx)
     return hull
 
+
 def sort_corners(corners, center):
     top = []
     bot = []
@@ -80,8 +85,9 @@ def sort_corners(corners, center):
     br = bot[0] if bot[0][0][0] > bot[1][0][0] else bot[1]
     return numpy.array([tl, tr, br, bl], numpy.float32)
 
+
 def get_center(corners):
-    center = numpy.array([0,0])
+    center = numpy.array([0, 0])
     for i in range(len(corners)):
         center[0] += corners[i][0][0]
         center[1] += corners[i][0][1]
@@ -89,15 +95,16 @@ def get_center(corners):
     center[1] /= len(corners)
     return center
 
+
 def get_warped_image_from_corners(image, corners):
     orig_image = numpy.copy(image)
     center = get_center(corners)
     corners = sort_corners(corners, center)
 
-    height_right = int(math.sqrt((corners[1][0][0]  - corners[2][0][0]) ** 2 +
-                            (corners[1][0][1] - corners[2][0][1]) ** 2))
-    height_left = int(math.sqrt((corners[0][0][0]  - corners[3][0][0]) ** 2 +
-                            (corners[0][0][1] - corners[3][0][1]) ** 2))
+    height_right = int(math.sqrt((corners[1][0][0] - corners[2][0][0]) ** 2 +
+                                 (corners[1][0][1] - corners[2][0][1]) ** 2))
+    height_left = int(math.sqrt((corners[0][0][0] - corners[3][0][0]) ** 2 +
+                                (corners[0][0][1] - corners[3][0][1]) ** 2))
     height = int((height_left + height_right) / 2)
     width = int(height * (300 / 210))
 
@@ -115,8 +122,8 @@ def get_distance_to_goal(orig_image, warped_image):
     print(math.degrees(angle_between_sides))
     return ((WIDTH_OF_GOAL_IN_METERS / 2) / math.sin(angle_between_sides / 2)) * math.sin((math.pi + angle_between_sides) / 2)
 
-def main():
-    image_to_process = cv2.imread("img/video_145288271.png")
+def main(image_to_process):
+    # image_to_process = cv2.imread("img/video_14528758.png")
     untouched_image = numpy.copy(image_to_process)
 
     thresholded_image = threshold_image_for_tape(numpy.copy(image_to_process))
@@ -150,4 +157,4 @@ def main():
     # while 1:
     #     cv.ShowImage("Vision", image_to_process)
 
-main()
+main(cv2.imread("img/video_14528758.png"))
