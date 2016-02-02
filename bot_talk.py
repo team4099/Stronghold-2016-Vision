@@ -40,7 +40,7 @@ def return_calculations(clientsocket, processor):
         firingAcceleration = processor.getFiringAcceleration()
         lateralAngle = processor.getLateralAngle()
         message = [1, verticalAngle, firingAcceleration, lateralAngle]
-    else: 
+    else:
         message = [0]
 
     clientsocket.send(",".join(str(i) for i in message).encode("utf-8"))
