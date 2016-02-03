@@ -4,16 +4,16 @@ import cv2
 import numpy
 import math
 
-B_RANGE = (225, 255)
-G_RANGE = (225, 255)
-R_RANGE = (225, 255)
+B_RANGE = (200, 255)
+G_RANGE = (200, 255)
+R_RANGE = (200, 255)
 
 
 WIDTH_OF_GOAL_IN_METERS = 0.51
 FOV_OF_CAMERA = math.radians(57)
 VERTICAL_FOV = math.radians(43)
 # FOV_OF_CAMERA = math.radians(1)
-# cv.NamedWindow("Vision")
+# cv2.namedWindow("Vision")
 
 
 class GoalNotFoundException(Exception):
@@ -63,10 +63,15 @@ def get_contours(orig_image):
         :param: `orig_image` - the thresholded image from which to find contours
     """
     new_image = numpy.copy(orig_image)
+    # cv2.imshow("Vision", new_image)
+    # cv2.waitKey(1000)
     new_image, contours, hierarchy = cv2.findContours(new_image,
                                                       cv2.RETR_EXTERNAL,
-                                                      cv2.CHAIN_APPROX_NONE)
+                                                      cv2.CHAIN_APPROX_SIMPLE)
+    # print(len(contours))
     # print(len(contours[0]))
+    # print(len(contours[0][0]))
+    # print(len(contours[0][0][0]))
     largest_contour = 0
     if len(contours) > 1:
         max_area = cv2.contourArea(contours[0])
@@ -75,8 +80,11 @@ def get_contours(orig_image):
             if current_area > max_area:
                 max_area = current_area
                 largest_contour = i
-    if len(contours) != 1:
-        raise
+    elif len(contours) == 0:
+        raise GoalNotFoundException("Goal not found!")
+        print("largest_contour:", largest_contour)
+    print("largest_contour:", largest_contour)
+
     rect = cv2.minAreaRect(contours[largest_contour])
     box = cv2.boxPoints(rect)
     box = numpy.int0(box)
@@ -135,7 +143,6 @@ def sort_corners(corners, center):
     br = bot[0] if bot[0][0][0] > bot[1][0][0] else bot[1]
     return numpy.array([tl, tr, br, bl], numpy.float32)
 
-
 def get_center(corners):
     """
     Gets center pixel of object given corner pixels
@@ -150,6 +157,21 @@ def get_center(corners):
         center[1] += corners[i][0][1]
     center[0] /= len(corners)
     center[1] /= len(corners)
+    return center
+
+def get_top_center(corners):
+    """
+    Gets center pixel of object on top line given corner pixels
+    Parameters:
+        :param: `corners` - a numpy array of corner pixels
+    Returns:
+        A numpy array of size 2 with the x and y coords of the center
+    """
+    center = numpy.array([0, 0])
+    for i in range(len(corners)):
+        center[0] += corners[i][0][0]
+    center[0] /= len(corners)
+    center[1] = (corners[0][0][1] + corners[1][0][1]) / 2
     return center
 
 
@@ -179,13 +201,31 @@ def get_warped_image_from_corners(image, corners):
 
     new_image_to_process = numpy.array(image, numpy.float32)
     quad_pts = cv2.getPerspectiveTransform(corners, quad_pts)
-    warped_image = cv2.warpPerspective(new_image_to_process, quad_pts, (width, height))
+    warped_image = cv2.warpPerspective(new_image_to_process, quad_pts,
+                                      (width, height))
     return warped_image
 
 # def get_distance_to_goal(orig_image, warped_image):
 #     angle_between_sides = (len(warped_image[0]) / len(orig_image[0])) * FOV_OF_CAMERA
 #     print(math.degrees(angle_between_sides))
 #     return ((WIDTH_OF_GOAL_IN_METERS / 2) / math.sin(angle_between_sides / 2)) * math.sin((math.pi + angle_between_sides) / 2)
+
+
+def get_angles_to_goal(goal_center, orig_image):
+    """
+    Gets the angle from the top center of the goal to the center of the image.
+    len(orig_image) is height; len(orig_image[0]) is width
+    Parameters:
+        :param: `goal_center` - a numpy array of size 2 with the
+                                coords of the center
+        :param: `orig_image` - the image to get the angle from
+    """
+    print(goal_center)
+    HEIGHT_CONVERSION_FACTOR = VERTICAL_FOV / len(orig_image)
+    HORIZONTAL_CONVERSION_FACTOR = FOV_OF_CAMERA / len(orig_image[0])
+    vert_angle_rads = HEIGHT_CONVERSION_FACTOR * (-goal_center[1] + len(orig_image) / 2)
+    horiz_angle_rads = HORIZONTAL_CONVERSION_FACTOR * (goal_center[0] - len(orig_image[0]) / 2)
+    return (horiz_angle_rads, vert_angle_rads)
 
 
 def main(image_to_process):
@@ -213,14 +253,15 @@ def main(image_to_process):
     new_image = cv2.drawContours(new_image, [corners], -1, (0, 0, 0))
     cv2.imwrite("img/hull_image.png", new_image)
 
-    warped_image = numpy.copy(untouched_image)
-    warped_image = get_warped_image_from_corners(warped_image, corners)
+    print(get_angles_to_goal(get_top_center(corners), untouched_image))
+    # warped_image = numpy.copy(untouched_image)
+    # warped_image = get_warped_image_from_corners(warped_image, corners)
 
-    print(get_distance_to_goal(untouched_image, warped_image))
+    # print(get_distance_to_goal(untouched_image, warped_image))
     # total_image = cv2.drawContours(image_to_process, [corners], -1, (0, 0, 0))
-    cv2.imwrite("img/warped_image.png", warped_image)
+    # cv2.imwrite("img/warped_image.png", warped_image)
     # print(x)
     # while 1:
     #     cv.ShowImage("Vision", image_to_process)
 
-main(cv2.imread("img/video_14528758.png"))
+main(cv2.imread("img/tower_image.png"))
