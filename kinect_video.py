@@ -58,7 +58,7 @@ while 1:
 
     char = cv2.waitKey(10)
     if char == 115:
-        cv2.imwrite("img/checkerboard_" + str(int(time.time()/10)) + "cb.png", video_frame)
+        cv2.imwrite("img/vision_testing_" + str(int(time.time()/10)) + ".png", video_frame)
     elif char == 27:
         break
     # cv2.imshow('Thresholded', thresholded_image)

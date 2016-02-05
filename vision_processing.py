@@ -4,6 +4,8 @@ import cv2
 import numpy
 import math
 
+import glob
+
 B_RANGE = (200, 255)
 G_RANGE = (200, 255)
 R_RANGE = (200, 255)
@@ -37,7 +39,7 @@ def threshold_image_for_tape(image):
     """
     orig_image = numpy.copy(image)
     # print orig_image.size
-    orig_image = cv2.medianBlur(orig_image, 11)
+    orig_image = cv2.medianBlur(orig_image, 1)
     height, width = orig_image.shape[0], orig_image.shape[1]
     eight_bit_image = numpy.zeros((height, width, 1), numpy.uint8)
     cv2.inRange(orig_image,
@@ -83,7 +85,7 @@ def get_contours(orig_image):
     elif len(contours) == 0:
         raise GoalNotFoundException("Goal not found!")
         print("largest_contour:", largest_contour)
-    print("largest_contour:", largest_contour)
+    # print("largest_contour:", largest_contour)
 
     rect = cv2.minAreaRect(contours[largest_contour])
     box = cv2.boxPoints(rect)
@@ -107,7 +109,7 @@ def get_corners_from_contours(contours, corner_amount=4):
         # print(contours)
         epsilon = coefficient * cv2.arcLength(contours, True)
         # epsilon =
-        print("epsilon:", epsilon)
+        # print("epsilon:", epsilon)
         poly_approx = cv2.approxPolyDP(contours, epsilon, True)
         hull = cv2.convexHull(poly_approx)
         if len(hull) == corner_amount:
@@ -220,12 +222,25 @@ def get_angles_to_goal(goal_center, orig_image):
                                 coords of the center
         :param: `orig_image` - the image to get the angle from
     """
-    print(goal_center)
+    # print(goal_center)
     HEIGHT_CONVERSION_FACTOR = VERTICAL_FOV / len(orig_image)
     HORIZONTAL_CONVERSION_FACTOR = FOV_OF_CAMERA / len(orig_image[0])
     vert_angle_rads = HEIGHT_CONVERSION_FACTOR * (-goal_center[1] + len(orig_image) / 2)
     horiz_angle_rads = HORIZONTAL_CONVERSION_FACTOR * (goal_center[0] - len(orig_image[0]) / 2)
-    return (horiz_angle_rads, vert_angle_rads)
+    return (math.degrees(horiz_angle_rads), math.degrees(vert_angle_rads))
+
+
+def get_kinect_angles(image):
+    """
+    Gets angle to goal given an opencv image.
+    Parameters:
+        :param: `image` - an opencv image
+    """
+    thresholded_image = threshold_image_for_tape(numpy.copy(image))
+    contours, box = get_contours(thresholded_image)
+    corners = get_corners_from_contours(contours)
+    return get_angles_to_goal(get_top_center(corners), image)
+
 
 
 def main(image_to_process):
@@ -264,4 +279,8 @@ def main(image_to_process):
     # while 1:
     #     cv.ShowImage("Vision", image_to_process)
 
-main(cv2.imread("img/tower_image.png"))
+# main(cv2.imread("img/tower_image.png"))
+# files = glob.glob("img/vision_testing*")
+# for filerino in files:
+#     print(filerino)
+#     print(get_kinect_angles(cv2.imread(filerino)))
