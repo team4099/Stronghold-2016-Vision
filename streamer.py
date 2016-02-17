@@ -40,7 +40,8 @@ def video_feed():
 @app.route('/get_angle')
 def get_angle():
     gen(VideoCamera(), True)
-    return vision_processing.get_kinect_angle()
+    angles = vision_processing.get_kinect_angle()
+    return ",".join(angles)
 
 if __name__ == '__main__':
     app.run("10.144.12.212", debug=True, port=80)
