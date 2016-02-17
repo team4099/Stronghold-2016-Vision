@@ -280,7 +280,8 @@ def main(image_to_process):
     #     cv.ShowImage("Vision", image_to_process)
 
 # main(cv2.imread("img/tower_image.png"))
-# files = glob.glob("img/vision_testing*")
-# for filerino in files:
-#     print(filerino)
-#     print(get_kinect_angles(cv2.imread(filerino)))
+if __name__ == '__main__':
+    files = glob.glob("img/vision_testing*")
+    for filerino in files:
+        print(filerino)
+        print(get_kinect_angles(cv2.imread(filerino)))
