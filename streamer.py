@@ -15,6 +15,7 @@
 # 3. Navigate the browser to the local webpage.
 from flask import Flask, render_template, Response
 from camera import VideoCamera
+import vision_processing
 
 app = Flask(__name__)
 
@@ -22,9 +23,12 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-def gen(camera):
+def gen(camera, write_flag=False):
     while True:
         frame = camera.get_frame()
+        if write_flag:
+            cv2.imwrite("to_process.png", frame)
+
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
@@ -32,6 +36,11 @@ def gen(camera):
 def video_feed():
     return Response(gen(VideoCamera()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/get_angle')
+def get_angle():
+    gen(VideoCamera(), True)
+    return vision_processing.get_kinect_angle()
 
 if __name__ == '__main__':
     app.run("10.144.12.212", debug=True, port=80)
