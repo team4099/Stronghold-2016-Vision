@@ -10,6 +10,8 @@ B_RANGE = (200, 255)
 G_RANGE = (200, 255)
 R_RANGE = (200, 255)
 
+DEFINITE_GOALS = numpy.load("contours.npy")
+# print(DEFINITE_GOALS.size)
 
 WIDTH_OF_GOAL_IN_METERS = 0.51
 FOV_OF_CAMERA = math.radians(57)
@@ -26,6 +28,15 @@ class GoalNotFoundException(Exception):
         self.value = value
     def __str__(self):
         return repr(self.value)
+
+def average_goal_matching(contour):
+    global DEFINITE_GOALS
+    total_score = 0
+    for definite_goal in DEFINITE_GOALS:
+        this_score = cv2.matchShapes(contour, definite_goal, 1, 0.0)
+        # print("Score:", this_score)
+        total_score += this_score
+    return total_score / DEFINITE_GOALS.size
 
 
 def threshold_image_for_tape(image):
@@ -75,17 +86,26 @@ def get_contours(orig_image):
     # print(len(contours[0][0]))
     # print(len(contours[0][0][0]))
     largest_contour = 0
+    most_matching = 0
+    min_score = 0
     if len(contours) > 1:
         max_area = cv2.contourArea(contours[0])
+        min_score = average_goal_matching(contours[0])
         for i in range(1, len(contours)):
+            current_score = average_goal_matching(contours[i])
             current_area = cv2.contourArea(contours[i])
             if current_area > max_area:
                 max_area = current_area
                 largest_contour = i
+            if current_score < min_score:
+                min_score = current_score
+                most_matching = 0
     elif len(contours) == 0:
         raise GoalNotFoundException("Goal not found!")
         print("largest_contour:", largest_contour)
     # print("largest_contour:", largest_contour)
+    print("Most matching:", most_matching)
+    print("Score:", min_score)
 
     rect = cv2.minAreaRect(contours[largest_contour])
     box = cv2.boxPoints(rect)
@@ -241,7 +261,23 @@ def get_kinect_angles(image):
     corners = get_corners_from_contours(contours)
     return get_angles_to_goal(get_top_center(corners), image)
 
-
+def get_training_contours():
+    # files = glob.glob("img/training*")
+    # for filerino in files:
+    #     img = cv2.imread(filerino)
+    #     thres = threshold_image_for_tape(img)
+    #     cv2.imwrite(filerino + "th.png", thres)
+    thres_files = glob.glob("img/*.pngth.png")
+    total_list = []
+    for filerino in thres_files:
+        print(filerino)
+        img = cv2.imread(filerino)
+        img = threshold_image_for_tape(img)
+        contour, box = get_contours(img)
+        # print(contour)
+        total_list.append(contour)
+    print(total_list)
+    numpy.save("contours.npy", numpy.array(total_list))
 
 def main(image_to_process):
     # image_to_process = cv2.imread("img/video_14528758.png")
@@ -279,8 +315,11 @@ def main(image_to_process):
     # while 1:
     #     cv.ShowImage("Vision", image_to_process)
 
+
 # main(cv2.imread("img/tower_image.png"))
 if __name__ == '__main__':
+    pass
+    # get_training_contours()
     files = glob.glob("img/vision_testing*")
     for filerino in files:
         print(filerino)
