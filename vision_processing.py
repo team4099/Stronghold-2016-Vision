@@ -3,6 +3,7 @@
 import cv2
 import numpy
 import math
+import random
 
 import glob
 
@@ -32,11 +33,21 @@ class GoalNotFoundException(Exception):
 def average_goal_matching(contour):
     global DEFINITE_GOALS
     total_score = 0
+    min_score = 99999999
+    # number_of_things = 0
+    if len(contour) < 8:
+        return 9999999999999999
     for definite_goal in DEFINITE_GOALS:
+        # number_of_things += 1
         this_score = cv2.matchShapes(contour, definite_goal, 1, 0.0)
         # print("Score:", this_score)
         total_score += this_score
-    return total_score / DEFINITE_GOALS.size
+        if this_score < min_score:
+            min_score = this_score
+    # print(number_of_things)
+    # print("Smallest score:", min_score)
+    # return total_score / DEFINITE_GOALS.size
+    return min_score
 
 
 def threshold_image_for_tape(image):
@@ -88,30 +99,35 @@ def get_contours(orig_image):
     largest_contour = 0
     most_matching = 0
     min_score = 0
+    max_area = 0
     if len(contours) > 1:
+        print("Length of contours:", len(contours))
         max_area = cv2.contourArea(contours[0])
         min_score = average_goal_matching(contours[0])
         for i in range(1, len(contours)):
+            # print(contours[i])
             current_score = average_goal_matching(contours[i])
             current_area = cv2.contourArea(contours[i])
             if current_area > max_area:
                 max_area = current_area
                 largest_contour = i
-            if current_score < min_score:
+            if current_score < min_score and current_score != 0 and current_area > 300 and current_area < 1500:
                 min_score = current_score
-                most_matching = 0
+                most_matching = i
     elif len(contours) == 0:
         raise GoalNotFoundException("Goal not found!")
-        print("largest_contour:", largest_contour)
+    print("largest_contour:", largest_contour)
+    print("Area:", max_area)
     # print("largest_contour:", largest_contour)
     print("Most matching:", most_matching)
     print("Score:", min_score)
+    print("Area of most matching:", cv2.contourArea(contours[most_matching]))
 
-    rect = cv2.minAreaRect(contours[largest_contour])
+    rect = cv2.minAreaRect(contours[most_matching])
     box = cv2.boxPoints(rect)
     box = numpy.int0(box)
     # print(box)
-    return numpy.array(contours[largest_contour]), box
+    return numpy.array(contours[most_matching]), box
 
 
 def get_corners_from_contours(contours, corner_amount=4):
@@ -258,6 +274,10 @@ def get_kinect_angles(image):
     """
     thresholded_image = threshold_image_for_tape(numpy.copy(image))
     contours, box = get_contours(thresholded_image)
+    total_image = cv2.drawContours(image, [contours], -1, (0, 0, 0))
+    random_number = str(int(random.random() * 100))
+    print("random number:", random_number)
+    cv2.imwrite("out/total_image" + random_number + ".png", total_image)
     corners = get_corners_from_contours(contours)
     return get_angles_to_goal(get_top_center(corners), image)
 
@@ -322,5 +342,6 @@ if __name__ == '__main__':
     # get_training_contours()
     files = glob.glob("img/vision_testing*")
     for filerino in files:
-        print(filerino)
+        print()
+        print("**" + filerino + "**")
         print(get_kinect_angles(cv2.imread(filerino)))
