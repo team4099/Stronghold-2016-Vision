@@ -261,6 +261,7 @@ def get_angles_to_goal(goal_center, orig_image):
     # print(goal_center)
     HEIGHT_CONVERSION_FACTOR = VERTICAL_FOV / len(orig_image)
     HORIZONTAL_CONVERSION_FACTOR = FOV_OF_CAMERA / len(orig_image[0])
+    # Positive when up / right, negative when down / left
     vert_angle_rads = HEIGHT_CONVERSION_FACTOR * (-goal_center[1] + len(orig_image) / 2)
     horiz_angle_rads = HORIZONTAL_CONVERSION_FACTOR * (goal_center[0] - len(orig_image[0]) / 2)
     return (math.degrees(horiz_angle_rads), math.degrees(vert_angle_rads))
@@ -274,10 +275,10 @@ def get_kinect_angles(image):
     """
     thresholded_image = threshold_image_for_tape(numpy.copy(image))
     contours, box = get_contours(thresholded_image)
-    total_image = cv2.drawContours(image, [contours], -1, (0, 0, 0))
-    random_number = str(int(random.random() * 100))
-    print("random number:", random_number)
-    cv2.imwrite("out/total_image" + random_number + ".png", total_image)
+    # total_image = cv2.drawContours(image, [contours], -1, (0, 0, 0))
+    # random_number = str(int(random.random() * 100))
+    # print("random number:", random_number)
+    # cv2.imwrite("out/total_image" + random_number + ".png", total_image)
     corners = get_corners_from_contours(contours)
     return get_angles_to_goal(get_top_center(corners), image)
 
