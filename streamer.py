@@ -33,17 +33,18 @@ def get_frame():
 
 def get_video():
     global process_flag
-    video_data = freenect.sync_get_video()
+#    rgb_video = freenect.sync_get_video()
+    ir_feed = freenect.sync_get_video(0, format=freenect.VIDEO_IR_8BIT)
 
-    video_data = video_data[1], frame_convert.video_cv(video_data[0])
-    print("From get_video:", process_flag)
     if process_flag:
-        cv2.imwrite("temp_video.png", video_data[1])
+#        ir_feed = freenect.sync_get_video(0, format=freenect.VIDEO_IR_8BIT)
+        cv2.imwrite("temp_video.png", ir_feed[1])
         process_flag = False
-    return video_data
+
+    rgb_video = ir_feed[1], ir_feed[0]
+    return rgb_video
 
 def gen(write_flag=False):
-#    while True:
     frame = get_frame()
     if write_flag:
         cv2.imwrite("to_process.png", frame)
@@ -51,33 +52,52 @@ def gen(write_flag=False):
     return (b'--frame\r\n'
            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/video_feed')
 def video_feed():
     return Response(gen(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/get_angle')
 def get_angle():
-    print("In get_angle")
-#    ret, snapshot = VideoCamera().video.read()
-# ret, snapshot = get_video()
+"""
+    Calculates the lateral and vertical angles the bot needs to move by in order 
+    to point the distance sensor directly at the goal
+
+    :return: -1 if goal not found or the lateral and vertical offset in the 
+            following format:
+
+        Lateral Angle, Vertical Angle
+
+"""
     global process_flag
     process_flag = True
     while process_flag:
-        print("From get_angle:", process_flag)
         pass
-    if ret:
-        try:
-            angles = vision_processing.get_kinect_angles(cv2.imread("temp_video.png"))
-            print(angles)
-            return ",".join(str(i) for i in angles)
-        except vision_processing.GoalNotFoundException:
-            return "-1", 503
-    return "-1", 503
+    try:
+        angles = vision_processing.get_kinect_angles(cv2.imread("temp_video.png"))
+        print(angles)
+        return ",".join(str(i) for i in angles)
+    except vision_processing.GoalNotFoundException:
+        return "-1", 503
+    except FileNotFoundError:
+        return "-1", 503
+
+@app.route("/get_trajectory")
+def get_trajectory():
+"""
+    Calculates the vertical angle the boot needs to set the shooter in order to 
+    land a shot inside the goal
+
+    :return: Vertical angle
+"""
+    #: Pseudocode
+    # Retrieve distance from distance sensor (maybe depth imaging from kinect?)
+    # Is velocity constant?
+    pass
 
 if __name__ == '__main__':
     app.run("0.0.0.0", debug=True, port=80)
