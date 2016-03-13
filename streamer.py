@@ -63,16 +63,16 @@ def index():
 
 @app.route('/get_angle')
 def get_angle():
-"""
-    Calculates the lateral and vertical angles the bot needs to move by in order 
-    to point the distance sensor directly at the goal
+    """
+        Calculates the lateral and vertical angles the bot needs to move by in order 
+        to point the distance sensor directly at the goal
 
-    :return: -1 if goal not found or the lateral and vertical offset in the 
-            following format:
+        :return: -1 if goal not found or the lateral and vertical offset in the 
+                following format:
 
-        Lateral Angle, Vertical Angle
+            Lateral Angle, Vertical Angle
 
-"""
+    """
     global process_flag
     process_flag = True
     while process_flag:
@@ -88,12 +88,12 @@ def get_angle():
 
 @app.route("/get_trajectory")
 def get_trajectory():
-"""
-    Calculates the vertical angle the boot needs to set the shooter in order to 
-    land a shot inside the goal
+    """
+        Calculates the vertical angle the boot needs to set the shooter in order to 
+        land a shot inside the goal
 
-    :return: Vertical angle
-"""
+        :return: Vertical angle
+    """
     #: Pseudocode
     # Retrieve distance from distance sensor (maybe depth imaging from kinect?)
     # Is velocity constant?
