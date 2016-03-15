@@ -50,13 +50,11 @@ def video_cv(video):
     Returns:
         An opencv image who's datatype is 1 byte, 3 channel BGR
     """
-    # import cv2
-    # print(video)
+
     video = video[:, :, ::-1]  # RGB -> BGR
-    # image = cv2.cv.CreateImageHeader((video.shape[1], video.shape[0]),
-    #                              cv.IPL_DEPTH_8U,
-    #                              3)
-    # cv2.cv.SetData(image, video.tostring(),
-    #            video.dtype.itemsize * 3 * video.shape[1])
-    # return image
-    return video
+    image = cv2.cv.CreateImageHeader((video.shape[1], video.shape[0]),
+                                  cv.IPL_DEPTH_8U,
+                                  3)
+    cv2.cv.SetData(image, video.tostring(),
+                video.dtype.itemsize * 3 * video.shape[1])
+    return image
