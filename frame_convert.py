@@ -31,12 +31,12 @@ def pretty_depth_cv(depth):
     """
     import cv2
     depth = pretty_depth(depth)
-    image = cv2.cv.CreateImageHeader((depth.shape[1], depth.shape[0]),
-                                 cv.IPL_DEPTH_8U,
-                                 1)
-    cv2.cv.SetData(image, depth.tostring(),
-               depth.dtype.itemsize * depth.shape[1])
-    return image
+    # image = cv2.cv.CreateImageHeader((depth.shape[1], depth.shape[0]),
+    #                              cv.IPL_DEPTH_8U,
+    #                              1)
+    # cv2.cv.SetData(image, depth.tostring(),
+    #            depth.dtype.itemsize * depth.shape[1])
+    return depth
 
 
 def video_cv(video):

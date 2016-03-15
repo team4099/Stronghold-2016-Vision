@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Project: Video Streaming with Flask
 # Author: Log0 <im [dot] ckieric [at] gmail [dot] com>
@@ -22,6 +22,7 @@ import cv2
 
 app = Flask(__name__)
 process_flag = False
+process_frame = None
 
 def get_frame():
     success, image = get_video()
@@ -32,25 +33,31 @@ def get_frame():
     return jpeg.tobytes()
 
 def get_video():
-    global process_flag
+    global process_flag, process_frame
 #    rgb_video = freenect.sync_get_video()
     ir_feed = freenect.sync_get_video(0, format=freenect.VIDEO_IR_8BIT)
+    depth_feed = freenect.sync_get_depth()
+    # print(depth_feed)
+    depth_cv = frame_convert.pretty_depth_cv(depth_feed[0])
 
     if process_flag:
 #        ir_feed = freenect.sync_get_video(0, format=freenect.VIDEO_IR_8BIT)
-        cv2.imwrite("temp_video.png", ir_feed[1])
+        # cv2.imwrite("temp_video.png", ir_feed[1])
+        process_frame = ir_feed[0]
         process_flag = False
 
     rgb_video = ir_feed[1], ir_feed[0]
-    return rgb_video
+    return 0, depth_cv
 
 def gen(write_flag=False):
-    frame = get_frame()
-    if write_flag:
-        cv2.imwrite("to_process.png", frame)
-        
-    return (b'--frame\r\n'
-           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+    while True:
+        frame = get_frame()
+        if write_flag:
+            cv2.imwrite("to_process.png", frame)
+
+        yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
 
 @app.route('/video_feed')
 def video_feed():
@@ -64,32 +71,35 @@ def index():
 @app.route('/get_angle')
 def get_angle():
     """
-        Calculates the lateral and vertical angles the bot needs to move by in order 
+        Calculates the lateral and vertical angles the bot needs to move by in order
         to point the distance sensor directly at the goal
 
-        :return: -1 if goal not found or the lateral and vertical offset in the 
+        :return: -1 if goal not found or the lateral and vertical offset in the
                 following format:
 
             Lateral Angle, Vertical Angle
 
     """
-    global process_flag
+    global process_flag, process_frame
     process_flag = True
     while process_flag:
         pass
     try:
-        angles = vision_processing.get_kinect_angles(cv2.imread("temp_video.png"))
+        print(process_frame)
+        angles = vision_processing.get_kinect_angles(process_frame)
         print(angles)
         return ",".join(str(i) for i in angles)
     except vision_processing.GoalNotFoundException:
+        print("No goal found")
         return "-1", 503
     except FileNotFoundError:
+        print("No file found")
         return "-1", 503
 
 @app.route("/get_trajectory")
 def get_trajectory():
     """
-        Calculates the vertical angle the boot needs to set the shooter in order to 
+        Calculates the vertical angle the boot needs to set the shooter in order to
         land a shot inside the goal
 
         :return: Vertical angle
@@ -100,4 +110,4 @@ def get_trajectory():
     pass
 
 if __name__ == '__main__':
-    app.run("0.0.0.0", debug=True, port=80)
+    app.run("0.0.0.0", debug=True, port=80, threaded=True)

@@ -7,9 +7,9 @@ import random
 
 import glob
 
-B_RANGE = (200, 255)
-G_RANGE = (200, 255)
-R_RANGE = (200, 255)
+B_RANGE = (100, 255)
+G_RANGE = (100, 255)
+R_RANGE = (100, 255)
 
 DEFINITE_GOALS = numpy.load("contours.npy")
 # print(DEFINITE_GOALS.size)
@@ -33,7 +33,7 @@ class GoalNotFoundException(Exception):
 def average_goal_matching(contour):
     global DEFINITE_GOALS
     total_score = 0
-    min_score = 99999999
+    min_score = 9999999999999999
     # number_of_things = 0
     if len(contour) < 8:
         return 9999999999999999
@@ -115,6 +115,8 @@ def get_contours(orig_image):
                 min_score = current_score
                 most_matching = i
     elif len(contours) == 0:
+        raise GoalNotFoundException("Goal not found!")
+    if min_score >= 9999999999999999:
         raise GoalNotFoundException("Goal not found!")
     print("largest_contour:", largest_contour)
     print("Area:", max_area)
@@ -273,7 +275,9 @@ def get_kinect_angles(image):
     Parameters:
         :param: `image` - an opencv image
     """
+    print(image)
     thresholded_image = threshold_image_for_tape(numpy.copy(image))
+    cv2.imwrite("out/threshold.png", thresholded_image)
     contours, box = get_contours(thresholded_image)
     # total_image = cv2.drawContours(image, [contours], -1, (0, 0, 0))
     # random_number = str(int(random.random() * 100))
