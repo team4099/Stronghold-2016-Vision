@@ -7,9 +7,9 @@ import random
 
 import glob
 
-B_RANGE = (100, 255)
-G_RANGE = (100, 255)
-R_RANGE = (100, 255)
+B_RANGE = (20, 255)
+G_RANGE = (20, 255)
+R_RANGE = (20, 255)
 
 DEFINITE_GOALS = numpy.load("contours.npy")
 # print(DEFINITE_GOALS.size)
@@ -61,7 +61,7 @@ def threshold_image_for_tape(image):
     """
     orig_image = numpy.copy(image)
     # print orig_image.size
-    orig_image = cv2.medianBlur(orig_image, 1)
+    orig_image = cv2.medianBlur(orig_image, 3)
     # orig_image[orig_image > 100] = 255
     # return orig_image[orig_image > 100]
     height, width = orig_image.shape[0], orig_image.shape[1]
@@ -278,6 +278,7 @@ def get_kinect_angles(image):
         :param: `image` - an opencv image
     """
     # print(image)
+    cv2.imwrite("out/thing.png", image)
     thresholded_image = threshold_image_for_tape(numpy.copy(image))
     cv2.imwrite("out/threshold.png", thresholded_image)
     contours, box = get_contours(thresholded_image)

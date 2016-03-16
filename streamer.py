@@ -40,7 +40,7 @@ def combine_depth_frames(frame1, frame2):
 
 def get_video():
     global process_flag, process_frame, depth_frame
-    rgb_video = freenect.sync_get_video()
+    rgb_video = freenect.sync_get_video(0, format=freenect.VIDEO_IR_8BIT)
     # print(depth_feed)
     # depth_cv = frame_convert.pretty_depth_cv(depth_feed[0])
     # depth_frames.append(depth_feed)
@@ -57,15 +57,16 @@ def get_video():
         for i in range(10):
             # print(depth_accumulator)
             depth_accumulator = combine_depth_frames(depth_accumulator, freenect.sync_get_depth()[0])
-        depth_accumulator[depth_accumulator > 0] = 2047
-        # print(type(depth_accumulator))
-        ir_feed = map(lambda row: map(operator.mul, row), ir_feed)
-        ir_feed = numpy.bitwise_and(depth_accumulator, numpy.array(ir_feed[1]))
-        cv2.imwrite("thing.png", frame_convert.pretty_depth_cv(ir_feed))
+        depth_accumulator[depth_accumulator > 0] = 255
+        # print(ir_feed)
+        # depth_accumulator = depth_accumulator.astype()
+        ir_feed = numpy.bitwise_and(depth_accumulator.astype(numpy.uint8), numpy.array(ir_feed[1])).astype(numpy.uint8)
+        # cv2.imwrite("thing.png", frame_convert.pretty_depth_cv(ir_feed))
         process_frame = frame_convert.pretty_depth_cv(ir_feed)
         process_flag = False
 
-    rgb_video = rgb_video[1], frame_convert.video_cv(rgb_video[0])
+    # rgb_video = rgb_video[1], frame_convert.video_cv(rgb_video[0])
+    return rgb_video[::-1]
     #return ir_feed[1], ir_feed[0]
     #return 0, frame_convert.pretty_depth_cv(depth_feed[0])
     return rgb_video
