@@ -19,10 +19,12 @@ import numpy
 import freenect
 import frame_convert
 import cv2
+import operator
 
 app = Flask(__name__)
 process_flag = False
 process_frame = None
+depth_frames = []
 
 def get_frame():
     success, image = get_video()
@@ -32,22 +34,41 @@ def get_frame():
     ret, jpeg = cv2.imencode('.jpg', image)
     return jpeg.tobytes()
 
+def combine_depth_frames(frame1, frame2):
+    frame2[frame2 > 2046] = 0
+    return numpy.bitwise_or(frame1, frame2)
+
 def get_video():
-    global process_flag, process_frame
-#    rgb_video = freenect.sync_get_video()
-    ir_feed = freenect.sync_get_video(0, format=freenect.VIDEO_IR_8BIT)
-    depth_feed = freenect.sync_get_depth()
+    global process_flag, process_frame, depth_frame
+    rgb_video = freenect.sync_get_video()
     # print(depth_feed)
-    depth_cv = frame_convert.pretty_depth_cv(depth_feed[0])
+    # depth_cv = frame_convert.pretty_depth_cv(depth_feed[0])
+    # depth_frames.append(depth_feed)
+    # depth_frames = depth_frames[:10]
 
     if process_flag:
+        ir_feed = freenect.sync_get_video(0, format=freenect.VIDEO_IR_8BIT)
+        ir_feed = ir_feed[1], ir_feed[0]
+        # depth_feed = freenect.sync_get_depth()
 #        ir_feed = freenect.sync_get_video(0, format=freenect.VIDEO_IR_8BIT)
         # cv2.imwrite("temp_video.png", ir_feed[1])
-        process_frame = ir_feed[0]
+        depth_accumulator = freenect.sync_get_depth()[0]
+        depth_accumulator[depth_accumulator > 2046] = 0
+        for i in range(10):
+            # print(depth_accumulator)
+            depth_accumulator = combine_depth_frames(depth_accumulator, freenect.sync_get_depth()[0])
+        depth_accumulator[depth_accumulator > 0] = 2047
+        # print(type(depth_accumulator))
+        ir_feed = map(lambda row: map(operator.mul, row), ir_feed)
+        ir_feed = numpy.bitwise_and(depth_accumulator, numpy.array(ir_feed[1]))
+        cv2.imwrite("thing.png", frame_convert.pretty_depth_cv(ir_feed))
+        process_frame = frame_convert.pretty_depth_cv(ir_feed)
         process_flag = False
 
-    rgb_video = ir_feed[1], ir_feed[0]
-    return 0, depth_cv
+    rgb_video = rgb_video[1], frame_convert.video_cv(rgb_video[0])
+    #return ir_feed[1], ir_feed[0]
+    #return 0, frame_convert.pretty_depth_cv(depth_feed[0])
+    return rgb_video
 
 def gen(write_flag=False):
     while True:

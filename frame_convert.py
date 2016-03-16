@@ -52,9 +52,9 @@ def video_cv(video):
     """
 
     video = video[:, :, ::-1]  # RGB -> BGR
-    image = cv2.cv.CreateImageHeader((video.shape[1], video.shape[0]),
-                                  cv.IPL_DEPTH_8U,
-                                  3)
-    cv2.cv.SetData(image, video.tostring(),
-                video.dtype.itemsize * 3 * video.shape[1])
-    return image
+    # image = cv2.cv.CreateImageHeader((video.shape[1], video.shape[0]),
+    #                               cv.IPL_DEPTH_8U,
+    #                               3)
+    # cv2.cv.SetData(image, video.tostring(),
+    #             video.dtype.itemsize * 3 * video.shape[1])
+    return video

@@ -62,19 +62,21 @@ def threshold_image_for_tape(image):
     orig_image = numpy.copy(image)
     # print orig_image.size
     orig_image = cv2.medianBlur(orig_image, 1)
+    # orig_image[orig_image > 100] = 255
+    # return orig_image[orig_image > 100]
     height, width = orig_image.shape[0], orig_image.shape[1]
     eight_bit_image = numpy.zeros((height, width, 1), numpy.uint8)
     cv2.inRange(orig_image,
                 (B_RANGE[0], G_RANGE[0], R_RANGE[0], 0),
                 (B_RANGE[1], G_RANGE[1], R_RANGE[1], 100),
                 eight_bit_image)
-    # eight_bit_image = cv2.adaptiveThreshold(orig_image,
-    #                             255,
-    #                             cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-    #                             cv2.THRESH_BINARY,
-    #                             8,
-    #                             0)
-    cv2.medianBlur(eight_bit_image, 9)
+    # # eight_bit_image = cv2.adaptiveThreshold(orig_image,
+    # #                             255,
+    # #                             cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    # #                             cv2.THRESH_BINARY,
+    # #                             8,
+    # #                             0)
+    # cv2.medianBlur(eight_bit_image, 9)
     return eight_bit_image
 
 
@@ -275,7 +277,7 @@ def get_kinect_angles(image):
     Parameters:
         :param: `image` - an opencv image
     """
-    print(image)
+    # print(image)
     thresholded_image = threshold_image_for_tape(numpy.copy(image))
     cv2.imwrite("out/threshold.png", thresholded_image)
     contours, box = get_contours(thresholded_image)
