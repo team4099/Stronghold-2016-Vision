@@ -40,7 +40,7 @@ def combine_depth_frames(frame1, frame2):
 
 def get_video():
     global process_flag, process_frame, depth_frame
-    rgb_video = freenect.sync_get_video(0, format=freenect.VIDEO_IR_8BIT)
+    rgb_video = freenect.sync_get_video()#0, format=freenect.VIDEO_IR_8BIT)
     # print(depth_feed)
     # depth_cv = frame_convert.pretty_depth_cv(depth_feed[0])
     # depth_frames.append(depth_feed)
@@ -65,8 +65,8 @@ def get_video():
         process_frame = frame_convert.pretty_depth_cv(ir_feed)
         process_flag = False
 
-    # rgb_video = rgb_video[1], frame_convert.video_cv(rgb_video[0])
-    return rgb_video[::-1]
+    rgb_video = rgb_video[1], frame_convert.video_cv(rgb_video[0])
+    # return rgb_video[::-1]
     #return ir_feed[1], ir_feed[0]
     #return 0, frame_convert.pretty_depth_cv(depth_feed[0])
     return rgb_video
